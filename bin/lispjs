@@ -6,7 +6,7 @@ var fs = require('fs');
 
 if (typeof argv._[0] == 'undefined' || typeof argv.o == 'undefined') {
   console.log("LispJS " + module.exports.version);
-  console.log("Usage: " + argv['$0'] + " -o outputfile.js inputfile.lispjs");
+  console.log("Usage: " + argv['$0'] + " -o outputfile.js [-m] inputfile.lispjs");
   process.exit(0);
 }
 
@@ -28,8 +28,11 @@ fs.readFile(argv._[0], 'utf8', function(err, data) {
   var code = require('../lib/code_generator').generateCodeForList(sTree);
   debugger;
   fs.readFile(__dirname+"/../lib/lispjsfuncs.js", function(error, lispfuncsCode) {
-    var minifiedCode = require("uglify-js").minify(lispfuncsCode + "\n" + code, {fromString: true}).code;
-    fs.writeFile(argv.o, minifiedCode, function(err) {
+    code = lispfuncsCode + "\n/* End of LispJS library code */\n\n" + code;
+    if (argv.m) {
+      code = require("uglify-js").minify(code, {fromString: true}).code;
+    }
+    fs.writeFile(argv.o, code, function(err) {
       if (err) {
         console.log("Error writing file "+ argv.o + ": " + err);
         process.exit(2)
